@@ -103,3 +103,20 @@
   ((part-factorial part-factorial) n))
 
 (display (factorial 5))(newline)
+
+
+;; 7 - pull self down
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define part-factorial
+  (lambda (self)
+    (almost-factorial
+     (lambda (x) ((self self) x)))))
+
+(display (factorial 5))(newline)
