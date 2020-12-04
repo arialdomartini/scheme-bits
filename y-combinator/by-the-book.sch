@@ -13,6 +13,7 @@
 
 (display (factorial 5))(newline)
 
+
 ;; inject self
 (define (part-factorial self n)
   (if (zero? n)
@@ -21,5 +22,19 @@
 
 (define (factorial n)
   (part-factorial part-factorial n))
+
+(display (factorial 5))(newline)
+
+
+;; pull n down
+
+(define (part-factorial self)
+  (lambda (n)
+    (if (zero? n)
+        1
+        (* n ((self self) (decr n))))))
+
+(define (factorial n)
+  ((part-factorial part-factorial) n))
 
 (display (factorial 5))(newline)
