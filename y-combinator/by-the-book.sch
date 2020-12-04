@@ -68,3 +68,18 @@
   ((part-factorial part-factorial) n))
 
 (display (factorial 5))(newline)
+
+
+;; 6 - from let to lambda
+(define (part-factorial self)
+  ((lambda (f)
+     (lambda (n)
+       (if (zero? n)
+           1
+           (* n (f (decr n))))))
+   (lambda (x) ((self self) x))))
+
+(define (factorial n)
+  ((part-factorial part-factorial) n))
+
+(display (factorial 5))(newline)
