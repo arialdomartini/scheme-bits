@@ -55,7 +55,7 @@
 (display (factorial 5))(newline)
 
 
-;; 5 - self self as a let, for languages
+;; 4 - self self as a let, for languages
 
 (define (part-factorial self)
   (let ((f (lambda (x) ((self self) x))))
@@ -70,13 +70,33 @@
 (display (factorial 5))(newline)
 
 
-;; 6 - from let to lambda
+;; 5 - from let to lambda
+
 (define (part-factorial self)
   ((lambda (f)
      (lambda (n)
        (if (zero? n)
            1
            (* n (f (decr n))))))
+   (lambda (x) ((self self) x))))
+
+(define (factorial n)
+  ((part-factorial part-factorial) n))
+
+(display (factorial 5))(newline)
+
+
+;; 6 - extract domain part
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define (part-factorial self)
+  (almost-factorial
    (lambda (x) ((self self) x))))
 
 (define (factorial n)
