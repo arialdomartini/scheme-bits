@@ -40,7 +40,8 @@
 (display (factorial 5))(newline)
 
 
-;; 4 - self self as a let; this fails in strict languages
+;; 4 - self self as a let; this only works with lazy languages;
+;; It would fail in strict languages
 
 (define (part-factorial self)
   (let ((f (self self)))
@@ -55,7 +56,7 @@
 (display (factorial 5))(newline)
 
 
-;; 4 - self self as a let, for languages
+;; 4 - self self as a let, for strict languages
 
 (define (part-factorial self)
   (let ((f (lambda (x) ((self self) x))))
@@ -119,4 +120,98 @@
     (almost-factorial
      (lambda (x) ((self self) x)))))
 
+(define factorial
+  (lambda (n)
+    ((part-factorial part-factorial) n)))
+
+(display (factorial 5))(newline)
+
+;; 8 - in factorial, extract part-factorial part-factorial to let
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define factorial
+    (let ((part-factorial
+           (lambda (self) (almost-factorial (lambda (x) ((self self) x))))))
+      (part-factorial part-factorial)))
+
+(display 8)(display ":")
+(display (factorial 5))(newline)
+
+;; 9 - x instead of part-factorial
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define factorial
+    (let ((x
+           (lambda (self) (almost-factorial (lambda (y) ((self self) y))))))
+      (x x)))
+
+(display 9)(display ":")
+(display (factorial 5))(newline)
+
+
+;; 10 - from let to lambda
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define factorial
+    ((lambda (x) (x x))
+           (lambda (self) (almost-factorial (lambda (y) ((self self) y))))))
+
+
+(display 10)(display ":")
+(display (factorial 5))(newline)
+
+
+;; 11 - rename self to x
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+(define factorial
+    ((lambda (x) (x x))
+           (lambda (x) (almost-factorial (lambda (y) ((x x) y))))))
+
+
+(display 11)(display ":")
+(display (factorial 5))(newline)
+
+;; 12 - extract almost-factorial
+
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
+
+
+(define Y
+  (lambda (f)
+    ((lambda (x) (x x))
+           (lambda (x) (f (lambda (y) ((x x) y)))))))
+
+(define factorial (Y almost-factorial))
+
+(display 12)(display ":")
 (display (factorial 5))(newline)
