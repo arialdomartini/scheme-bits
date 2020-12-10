@@ -1,1 +1,1 @@
-scheme --silent < by-the-book.sch
+scheme --silent < by-the-book.scm
