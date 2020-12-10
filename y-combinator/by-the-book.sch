@@ -1,6 +1,6 @@
 ;; Following the steps in https://mvanier.livejournal.com/2897.html
 
-;; 1
+;; 1 - a recursive factorial
 (define (zero? n)
   (= n 0))
 (define (decr n)
@@ -126,7 +126,7 @@
 
 (display (factorial 5))(newline)
 
-;; 8 - in factorial, extract part-factorial part-factorial to let
+;; 8 - in factorial, extract part-factorial part-factorial as a let expression
 
 (define almost-factorial
   (lambda (f)
@@ -196,7 +196,7 @@
 (display 11)(display ":")
 (display (factorial 5))(newline)
 
-;; 12 - extract almost-factorial
+;; 12 - extract almost-factorial as a lambda parameter
 
 (define almost-factorial
   (lambda (f)
