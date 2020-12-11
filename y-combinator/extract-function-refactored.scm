@@ -18,7 +18,24 @@
 (display 1)(display ":")
 (display (factorial 5))(newline)
 
-;; 2 - inject self
+
+;; 2 - inject a continuation into factorial
+
+(define part-factorial
+  (lambda (self n)
+    (if (zero? n)
+        1
+        (* n (self self (decr n))))))
+
+(define factorial
+  (lambda (n)
+    (part-factorial part-factorial n)))
+
+(display "1b")(display ":")
+(display (factorial 5))(newline)
+
+
+;; 3 - extract Y
 (define part-factorial
   (lambda (self n)
     (if (zero? n)
@@ -33,10 +50,13 @@
 (define factorial
   (Y part-factorial))
 
-(display 2)(display ":")
+(display 3)(display ":")
 (display (factorial 5))(newline)
 
-;; 3 - pull n down
+; 4 - pull n down in part-factorial
+; The goal is to transform part-factorial so that it gets back to its
+; original form (without the self self)
+
 (define part-factorial
   (lambda (self)
     (lambda (n)
@@ -49,17 +69,30 @@
     (lambda (n)
       ((f f) n))))
 
+(define factorial (Y part-factorial))
+
+(display 4)(display ":")
+(display (factorial 5))(newline)
+
+;; 5 - Y to point-free style. Remove reference to n
+(define part-factorial
+  (lambda (self)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n ((self self) (decr n)))))))
+
 (define Y
   (lambda (f)
     (f f)))
 
 (define factorial (Y part-factorial))
 
-(display 3)(display ":")
+(display "5")(display ":")
 (display (factorial 5))(newline)
 
 
-;; 4 - self self as a let
+;; 6 - self self as a let
 (define part-factorial
   (lambda (self)
     (let ((f (lambda (x) ((self self) x))))
@@ -70,20 +103,14 @@
 
 (define Y
   (lambda (f)
-    (lambda (n)
-      ((f f) n))))
-
-(define Y
-  (lambda (f)
     (f f)))
-
 
 (define factorial (Y part-factorial))
 
-(display 4)(display ":")
+(display 6)(display ":")
 (display (factorial 5))(newline)
 
-;; 5 - from let to lambda
+;; 7 - from let to lambda
 (define part-factorial
   (lambda (self)
     ((lambda (f)                        ;; \
@@ -95,19 +122,16 @@
 
 (define Y
   (lambda (f)
-    (lambda (n)
-      ((f f) n))))
-
-(define Y
-  (lambda (f)
     (f f)))
 
 (define factorial (Y part-factorial))
 
-(display 5)(display ":")
+(display 7)(display ":")
 (display (factorial 5))(newline)
 
-;; 6 - extract domain part
+
+
+;; 8 - extract domain part
 (define almost-factorial
   (lambda (f)
     (lambda (n)
@@ -120,6 +144,24 @@
     (almost-factorial
      (lambda (x) ((self self) x)))))
 
+(define Y
+  (lambda (f)
+    (f f)))
+
+(define factorial
+  (Y part-factorial))
+
+(display "8")(display ":")
+(display (factorial 5))(newline)
+
+
+;; 9 - extract almost-factorial out from part-factorial
+(define almost-factorial
+  (lambda (f)
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (f (decr n)))))))
 
 (define part-factorial
   (lambda (f)
@@ -134,99 +176,41 @@
 (define factorial
   (Y almost-factorial))
 
-(display 66)(display ":")
-(display (factorial 5))(newline)
-
-
-(exit)
-
-
-(define rest
-  (lambda (f)
-    (lambda (self)
-      (f
-       (lambda (x) ((self self) x))))))
-
-(define Y
-  (lambda (f)
-    (lambda (self)
-      (f
-       (lambda (x) ((self self )x))))))
-
-
-(define factorial
-  (lambda (n)
-    (((Y almost-factorial)(Y almost-factorial)) n)))
-
-(display 6)(display ":")
-(display (factorial 5))(newline)
-
-;; 7 - pull self down
-;; this has been already done here!
-
-;; 8 - in factorial, extract part-factorial part-factorial as a let expression
-
-(define almost-factorial
-  (lambda (f)
-    (lambda (n)
-      (if (zero? n)
-          1
-          (* n (f (decr n)))))))
-
-(define Y
-  (lambda (f)
-    (let ((part-factorial
-           (lambda (self) (f (lambda (x) ((self self) x))))))
-      (part-factorial part-factorial))))
-
-(define factorial (Y almost-factorial))
-
-(display 8)(display ":")
-(display (factorial 5))(newline)
-
-
-;; 8 - x instead of part-factorial
-
-(define almost-factorial
-  (lambda (f)
-    (lambda (n)
-      (if (zero? n)
-          1
-          (* n (f (decr n)))))))
-
-(define Y
-  (lambda (f)
-    (let ((x
-           (lambda (self) (f (lambda (x) ((self self) x))))))
-      (x x))))
-
-(define factorial (Y almost-factorial))
-
 (display 9)(display ":")
 (display (factorial 5))(newline)
 
 
 ;; 10 - from let to lambda
+
 (define almost-factorial
   (lambda (f)
     (lambda (n)
       (if (zero? n)
           1
           (* n (f (decr n)))))))
+
+(define part-factorial
+  (lambda (f)
+    (lambda (self)
+      (f (lambda (x) ((self self) x))))))
 
 (define Y
   (lambda (f)
     ((lambda (x)
        (x x))
-     (lambda (self) (f (lambda (x) ((self self) x)))))))
+     (part-factorial f))))
 
-(define factorial (Y almost-factorial))
+(define factorial
+  (Y almost-factorial))
 
 (display 10)(display ":")
 (display (factorial 5))(newline)
 
 
-;; 11 - rename self to x
+;; 11 - inline part-factorial
+
+
+
 (define almost-factorial
   (lambda (f)
     (lambda (n)
@@ -234,23 +218,25 @@
           1
           (* n (f (decr n)))))))
 
+(define part-factorial
+  (lambda (f)
+    (lambda (self)
+      (f (lambda (x) ((self self) x))))))
+
+(define Y
+  (lambda (f)
+    ((lambda (x) (x x))
+     (lambda (x) (f (lambda (y) ((x x) y)))))))
+
 (define factorial
-  ((lambda (x)
-     (x x))
-   (lambda (x) (almost-factorial (lambda (y) ((x x) y))))))
+  (Y almost-factorial))
 
 (display 11)(display ":")
 (display (factorial 5))(newline)
 
 
-;; 12 - extract almost-factorial as a lambda parameter
-(define almost-factorial
-  (lambda (f)
-    (lambda (n)
-      (if (zero? n)
-          1
-          (* n (f (decr n)))))))
 
+;; goal
 (define Y
   (lambda (f)
     ((lambda (x) (x x))
