@@ -73,6 +73,11 @@
     (lambda (n)
       ((f f) n))))
 
+(define Y
+  (lambda (f)
+    (f f)))
+
+
 (define factorial (Y part-factorial))
 
 (display 4)(display ":")
@@ -81,11 +86,11 @@
 ;; 5 - from let to lambda
 (define part-factorial
   (lambda (self)
-    ((lambda (f)
-       (lambda (n)
-         (if (zero? n)
-             1
-             (* n (f (decr n))))))
+    ((lambda (f)                        ;; \
+       (lambda (n)                      ;; |
+         (if (zero? n)                  ;; |  almost-factorial
+             1                          ;; |
+             (* n (f (decr n))))))      ;; /
      (lambda (x) ((self self) x)))))
 
 (define Y
@@ -94,7 +99,8 @@
       ((f f) n))))
 
 (define Y
-  (lambda (f) (f f)))
+  (lambda (f)
+    (f f)))
 
 (define factorial (Y part-factorial))
 
@@ -102,7 +108,6 @@
 (display (factorial 5))(newline)
 
 ;; 6 - extract domain part
-
 (define almost-factorial
   (lambda (f)
     (lambda (n)
@@ -110,11 +115,53 @@
           1
           (* n (f (decr n)))))))
 
+(define rest
+  (lambda (self)
+    (almost-factorial
+     (lambda (x) ((self self) x)))))
+
+
+(define rest
+  (lambda (f)
+    (lambda (self)
+      (f (lambda (x) ((self self) x))))))
+
+(define Y
+  (lambda (f)
+    (let ((xx (rest f)))
+      (xx xx))))
+
+(define Y
+  (lambda (f)
+    ((lambda (xx) (xx xx))
+     (rest f))))
+
+(define Y
+  (lambda (f)
+    ((lambda (xx) (xx xx))
+     (lambda (self) (f (lambda (x) ((self self) x)))))))
+
+
+(define factorial
+  (Y almost-factorial))
+
+(display 66)(display ":")
+(display (factorial 5))(newline)
+
+
+
+(define rest
+  (lambda (f)
+    (lambda (self)
+      (f
+       (lambda (x) ((self self) x))))))
+
 (define Y
   (lambda (f)
     (lambda (self)
       (f
        (lambda (x) ((self self )x))))))
+
 
 (define factorial
   (lambda (n)
